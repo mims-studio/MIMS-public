@@ -75,11 +75,44 @@ le da otro del pool, recableando la voz y la mensajería de una pieza.
 convención: hay pruebas que intentan cruzar los datos de dos negocios a propósito y
 tienen que fallar.
 
-**Las reglas de negocio viven en la base de datos.** Los huecos, los solapes, la
-capacidad y las franjas se calculan en SQL, no en el código de la aplicación. Un
-solo sitio que decide si una reserva cabe, compartido por WhatsApp, por la voz y por
-el panel. Tres clientes distintos no pueden dar tres respuestas distintas a la misma
-pregunta.
+---
+
+## El corazón está en la base de datos
+
+Es la decisión que más define el proyecto, y la que más me preguntan.
+
+**Las reglas de negocio no viven en el código de la aplicación: viven en PostgreSQL.**
+Si una reserva cabe, si pisa a otra, cuántas caben a esa hora, cuándo se corta la
+última entrada, qué puede hacer cada rol — todo eso se decide en SQL.
+
+El motivo es simple: hay **tres clientes distintos** pidiendo lo mismo — el asistente
+de WhatsApp, el de voz y el panel. Si cada uno lleva su copia de las reglas, tarde o
+temprano dan tres respuestas distintas a la misma pregunta, y el día que pasa tienes
+una mesa reservada dos veces y a un cliente enfadado en la puerta. Con la lógica en
+un solo sitio, eso no puede ocurrir: los tres preguntan a la misma función.
+
+Cómo se traduce eso:
+
+**Operaciones completas en una transacción.** Crear, mover o cancelar una reserva no
+es un `INSERT`: es comprobar disponibilidad, resolver el recurso, escribir, y
+devolver ya redactado el aviso que hay que mandarle al dueño. Todo o nada. No existe
+el estado intermedio en el que la reserva está pero el aviso se perdió.
+
+**Estados que la base hace cumplir.** El ciclo de vida de un número de teléfono —
+libre, en verificación, listo, asignado — es una máquina de estados con sus
+restricciones. Si un estado significa «esto se puede repartir a un cliente», la base
+**rechaza** que se marque así algo que no cumple los requisitos. Un `UPDATE`
+descuidado falla en el sitio, en vez de romperse tres pasos más allá y con un cliente
+delante.
+
+**Permisos como función, no como `if`.** Quién puede ver la caja, editar el bot o
+tocar el calendario se responde con una consulta, la misma para el panel, la API
+móvil y el asistente.
+
+**80 migraciones versionadas**, cada una idempotente, con su explicación de por qué
+existe y su consulta de verificación al final. El esquema se lee como un registro de
+decisiones: por qué está esa columna, qué incidente la trajo y cómo comprobar que
+sigue bien.
 
 ---
 
@@ -133,9 +166,12 @@ donde cada bug queda escrito con su reproducción y su causa
 
 ## Quién lo ha hecho
 
-Andreu Martín — producto, arquitectura y desarrollo.
+**Andreu Martín** y **Franc Cosp** — producto, arquitectura y desarrollo.
 
-Disponible para proyectos como freelance: integraciones complejas, automatización de
+Somos dos. Todo lo de aquí arriba está construido, roto y arreglado entre los dos:
+el motor de reservas, el aprovisionamiento, los asistentes, el panel y la app.
+
+Disponibles para proyectos como freelance: integraciones complejas, automatización de
 procesos, SaaS multi-tenant y asistentes con IA que hacen cosas de verdad, no solo
 conversar.
 
