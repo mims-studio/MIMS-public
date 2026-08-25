@@ -11,6 +11,11 @@ entrenado con sus servicios y sus horarios, y su panel.
 > Caso de estudio. El código es privado; aquí está la arquitectura y las decisiones.
 > Producto en producción con clientes de pago.
 
+![El alta de MIMS: una conversación, no un formulario](docs/img/alta-inicio.png)
+
+*El alta es un chat. El asistente pregunta, entiende y va rellenando el negocio por
+detrás — y quien prefiera el formulario de siempre lo tiene a un clic.*
+
 ---
 
 ## Lo difícil no es el chatbot
@@ -33,7 +38,12 @@ flowchart LR
 ```
 
 Siete sistemas externos, en cadena, cada uno con sus propios fallos. Y todo eso
-mientras el cliente mira una pantalla que dice «activando tu alta».
+mientras el cliente mira esta pantalla:
+
+![Pantalla de pago confirmado, con los pasos que corren por detrás](docs/img/alta-gracias.png)
+
+Nadie del equipo interviene. Cuando el cliente llega aquí, el proceso entero ya está
+corriendo solo.
 
 **Ahí es donde está la ingeniería de verdad:** que un paso que falla no deje al
 cliente pagado y a medias.
