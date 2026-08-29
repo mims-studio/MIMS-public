@@ -18,6 +18,56 @@ detrás — y quien prefiera el formulario de siempre lo tiene a un clic.*
 
 ---
 
+## Cómo se ve
+
+**El producto está en vivo: [mims.studio](https://mims.studio)** — se puede probar el
+alta conversacional y llamar al asistente de voz desde la web, sin dar ningún dato.
+
+Un solo número de WhatsApp, dos caras: por fuera atiende a tus clientes, por dentro
+te obedece a ti.
+
+### El cliente, por WhatsApp
+
+Precios y horarios salen de la base de datos del negocio, no de lo que el modelo
+recuerde. Si un dato no está, dice que no lo tiene — no se lo inventa. Y tres cosas
+más que son deliberadas:
+
+- **Cambia de idioma sin que nadie lo configure.** El cliente escribe en catalán y el
+  asistente sigue en catalán. Son 27 idiomas y el negocio no toca nada.
+- **No reserva a las 3 de la madrugada.** El horario manda: la disponibilidad la
+  decide la base de datos, así que el asistente no puede prometer una hora que no
+  existe por muy bien que se lo pidan.
+- **Se aparta cuando se lo piden.** «Quiero hablar con una persona» y el bot se calla,
+  avisa al negocio y la conversación queda esperando a un humano.
+
+### El dueño, por ese mismo número
+
+El dueño no entra a ningún panel: escribe —o manda un **audio**— y el asistente
+ejecuta. Los cambios que tocan datos van siempre en dos pasos: primero el resumen de
+lo que va a pasar, y solo después de un **Sí, confirmar** se aplica.
+
+Los botones son los nativos de WhatsApp, no texto con números para elegir. Tiene un
+detalle sucio detrás: la bandeja por la que pasan los mensajes **descarta el
+identificador del botón** y solo conserva el título, así que los títulos son la única
+señal que llega y están escritos para poder leerse como si el cliente los hubiera
+tecleado.
+
+### El panel
+
+Calendario por profesional, clientes, conversaciones, equipo y facturación. Lo mismo
+que hace el asistente por WhatsApp se puede hacer aquí, porque **preguntan a la misma
+función de la base de datos**: si una hora está ocupada, lo está para los dos.
+
+Cuando un cliente pide hablar con una persona, la conversación aparece marcada como
+**humano** y el bot deja de contestar en ese chat hasta que alguien lo reactiva.
+
+### Y por teléfono
+
+El mismo asistente descuelga llamadas, conversa y reserva. Hay una demo en la web que
+se puede llamar desde el navegador y ver la conversación transcrita en directo.
+
+---
+
 ## Lo difícil no es el chatbot
 
 Un bot que contesta lo monta cualquiera en una tarde. Lo que cuesta es lo de debajo:
