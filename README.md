@@ -11,6 +11,10 @@ entrenado con sus servicios y sus horarios, y su panel.
 > Caso de estudio. El código es privado; aquí está la arquitectura y las decisiones.
 > Producto en producción con clientes de pago.
 
+> **[Desglose técnico completo →](docs/ARQUITECTURA.md)** — la base de datos y sus
+> entidades, el recorrido exacto de una reserva paso a paso, los patrones del backend
+> y del panel, y los puntos críticos de seguridad y rendimiento con su incidente.
+
 ![El alta de MIMS: una conversación, no un formulario](docs/img/alta-inicio.png)
 
 *El alta es un chat. El asistente pregunta, entiende y va rellenando el negocio por
@@ -159,10 +163,12 @@ delante.
 tocar el calendario se responde con una consulta, la misma para el panel, la API
 móvil y el asistente.
 
-**80 migraciones versionadas**, cada una idempotente, con su explicación de por qué
+**83 migraciones versionadas**, cada una idempotente, con su explicación de por qué
 existe y su consulta de verificación al final. El esquema se lee como un registro de
 decisiones: por qué está esa columna, qué incidente la trajo y cómo comprobar que
 sigue bien.
+
+Todo esto, en detalle y con el código: **[docs/ARQUITECTURA.md](docs/ARQUITECTURA.md)**.
 
 ---
 
@@ -206,8 +212,8 @@ donde cada bug queda escrito con su reproducción y su causa
 
 | | |
 |---|---|
-| Migraciones de base de datos | **80** |
-| Pruebas automáticas | **336** |
+| Migraciones de base de datos | **83** |
+| Pruebas automáticas | **528** |
 | Servicios externos integrados | **8** |
 | Sectores soportados | **22** |
 | Idiomas | **27** |
