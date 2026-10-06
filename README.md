@@ -15,10 +15,10 @@ entrenado con sus servicios y sus horarios, y su panel.
 > entidades, el recorrido exacto de una reserva paso a paso, los patrones del backend
 > y del panel, y cómo están resueltas la seguridad y la resiliencia.
 
-![El alta de MIMS: una conversación, no un formulario](docs/img/alta-inicio.png)
+![El panel de MIMS: reservas, facturación y clientes de los últimos 30 días](docs/img/panel-inicio.png)
 
-*El alta es un chat. El asistente pregunta, entiende y va rellenando el negocio por
-detrás — y quien prefiera el formulario de siempre lo tiene a un clic.*
+*El panel del negocio (datos de demostración): reservas, facturación, mejores clientes
+y quién factura más. Todo lo que el asistente hace por WhatsApp y por teléfono acaba aquí.*
 
 ---
 
@@ -35,6 +35,8 @@ te obedece a ti.
 Precios y horarios salen de la base de datos del negocio, no de lo que el modelo
 recuerde. Si un dato no está, dice que no lo tiene — no se lo inventa. Y tres cosas
 más que son deliberadas:
+
+![Un cliente pide cita por WhatsApp y elige servicio y profesional con botones](docs/img/whatsapp-cliente.png)
 
 - **Cambia de idioma sin que nadie lo configure.** El cliente escribe en catalán y el
   asistente sigue en catalán. Son 27 idiomas y el negocio no toca nada.
@@ -65,10 +67,14 @@ función de la base de datos**: si una hora está ocupada, lo está para los dos
 Cuando un cliente pide hablar con una persona, la conversación aparece marcada como
 **humano** y el bot deja de contestar en ese chat hasta que alguien lo reactiva.
 
+![Calendario de reservas por profesional, vista de día](docs/img/panel-calendario.png)
+
 ### Y por teléfono
 
 El mismo asistente descuelga llamadas, conversa y reserva. Hay una demo en la web que
 se puede llamar desde el navegador y ver la conversación transcrita en directo.
+
+![La demo de voz de la web: se elige un negocio de ejemplo y se le llama desde el navegador](docs/img/demo-voz.png)
 
 ---
 
@@ -92,12 +98,9 @@ flowchart LR
 ```
 
 Siete sistemas externos, en cadena, cada uno con sus propios fallos. Y todo eso
-mientras el cliente mira esta pantalla:
+mientras el cliente espera en la pantalla de confirmación.
 
-![Pantalla de pago confirmado, con los pasos que corren por detrás](docs/img/alta-gracias.png)
-
-Nadie del equipo interviene. Cuando el cliente llega aquí, el proceso entero ya está
-corriendo solo.
+Nadie del equipo interviene: el proceso entero corre solo.
 
 **Ahí es donde está la ingeniería de verdad:** que un paso que falla no deje al
 cliente pagado y a medias.
