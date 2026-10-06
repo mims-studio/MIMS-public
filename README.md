@@ -191,31 +191,39 @@ Todo esto, en detalle y con el código: **[docs/ARQUITECTURA.md](docs/ARQUITECTU
 
 ---
 
-## Con qué está hecho
+## Stack tecnológico
 
-**Producto** · TypeScript · Node.js (Fastify) · Next.js · React · Tailwind · React Native (Expo)
+| Capa | Tecnología |
+|---|---|
+| **Backend (el motor)** | TypeScript · Node.js 22 · Fastify |
+| **Base de datos** | PostgreSQL 16 · lógica de negocio en PL/pgSQL · migraciones versionadas |
+| **Panel web** | Next.js · React · Tailwind · Drizzle ORM |
+| **Alta y webs** | Next.js · React |
+| **App móvil** | React Native con Expo (iOS y Android) |
+| **Infraestructura** | Docker y Docker Compose · Caddy (HTTPS automático y lista blanca de rutas) |
+| **Calidad** | Vitest · pruebas de integración contra base real · batería semanal de ataques a la IA · QA continuo |
+| **Desarrollo** | Git y GitHub (ramas y PRs) · Claude Code como equipo de desarrollo |
 
-**Datos** · PostgreSQL 16 con lógica en PL/pgSQL · migraciones versionadas · Drizzle ORM
+## Proveedores
 
-**Infraestructura** · servidores propios en **Hetzner** (UE, red privada entre ellos) ·
-Docker y Docker Compose · Caddy (HTTPS y lista blanca de rutas) · Vercel para las webs ·
-Cloudflare DNS · copias diarias de la base, cifradas y fuera del servidor
+| Proveedor | Para qué lo usamos |
+|---|---|
+| **Hetzner** | Servidores propios en la UE, con red privada entre ellos: motor, base de datos y bandeja |
+| **Meta · WhatsApp Cloud API** | El canal principal: mensajes, botones nativos, plantillas aprobadas y registro de números |
+| **Chatwoot** (autoalojado) | Bandeja de conversaciones y traspaso del bot a una persona |
+| **Vapi** | El agente de voz que descuelga, conversa y reserva por teléfono |
+| **Zadarma** | Números de teléfono, centralita y troncal SIP, con transferencia de la llamada al móvil del dueño |
+| **Google Gemini** | El cerebro conversacional, con llamada a funciones |
+| **Groq** | Transcripción de notas de voz y modelo de respaldo si el principal cae |
+| **Google Cloud** | Places para rellenar la ficha del negocio en el alta, e inicio de sesión con Google |
+| **Stripe** | Suscripciones y cobro de señales de reserva (Connect) |
+| **Vercel** | Alojamiento de la web y del alta |
+| **Cloudflare** | DNS |
+| **Resend** | Emails de bienvenida y de acceso al panel |
+| **Telegram** | Alertas de operación para el equipo |
 
-**Mensajería** · WhatsApp Cloud API (Meta) con plantillas aprobadas · Chatwoot autoalojado
-como bandeja y traspaso a humano
-
-**Voz y telefonía** · Vapi (agente de voz) · Zadarma (números, centralita y troncal SIP,
-con transferencia de la llamada al móvil del dueño)
-
-**IA** · Gemini con tool-calling · Groq (transcripción de audios y modelo de respaldo) ·
-cadena de respaldo entre modelos para que una caída del proveedor no deje al negocio mudo
-
-**Resto** · Stripe (suscripciones y cobro de señales con Connect) · Google (Places para
-rellenar la ficha del negocio, inicio de sesión con Google) · Resend (email) · Telegram
-(alertas de operación)
-
-**Calidad** · Vitest · pruebas de integración contra base real · batería semanal de
-ataques a la IA y de permisos · carril de QA continuo
+Las copias de la base de datos se hacen cada día y se guardan cifradas fuera del
+servidor.
 
 ---
 
@@ -245,7 +253,7 @@ validan todo por su cuenta.
 |---|---|
 | Migraciones de base de datos | **117** |
 | Pruebas automáticas | **más de 1.500** |
-| Servicios externos integrados | **más de 10** |
+| Servicios externos integrados | **13** |
 | Sectores soportados | **22** |
 | Idiomas | **27** |
 
