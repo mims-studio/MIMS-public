@@ -2,8 +2,8 @@
 
 Desglose técnico de la arquitectura: cómo se conecta la base de datos y cómo están
 estructuradas las entidades, el recorrido exacto de una reserva desde que el cliente
-escribe, cómo están montados el backend y el panel, y los puntos críticos de
-seguridad y rendimiento que hemos tenido que resolver.
+escribe, cómo están montados el backend y el panel, y cómo están resueltas
+la seguridad y la resiliencia.
 
 > Todas las cifras y fragmentos están verificados contra el código, no reconstruidos
 > de memoria. El código es privado; esto es la arquitectura y las decisiones.
@@ -40,7 +40,7 @@ usa Drizzle, porque ahí lo que importa es el tipado de las lecturas para React,
 lógica.
 
 ```ts
-// src/db/pool.ts — cada parámetro está donde está por un incidente concreto
+// src/db/pool.ts — cada parámetro está ajustado a propósito
 export const pool = new Pool({
   host: process.env.PGHOST, port: …, user: …, password: …, database: …,
 
@@ -81,7 +81,7 @@ móvil y el asistente llaman a las mismas.
 
 **117 migraciones como registro de decisiones.** Cada una es idempotente, lleva escrito
 *por qué* existe y termina con su propia consulta de verificación. El esquema se lee
-como un histórico: qué incidente trajo esa columna y cómo comprobar que sigue bien.
+como un histórico: por qué está esa columna y cómo comprobar que sigue bien.
 
 ---
 
@@ -152,8 +152,7 @@ profesionales, equipo, horario en prosa legible, reglas de derivación a humano.
 herramientas. Cadena de respaldo: modelo bueno → modelo de diario → otro proveedor.
 Presupuesto de tiempo por turno con `AbortSignal`. La cuota es *por modelo y día*:
 agotar el bueno no agota el rápido, así que primero se reintenta ahí. Y la **lentitud
-no se reintenta** — un turno se quedó colgado 110 s porque reintentábamos algo que no
-estaba roto, solo lento.
+no se reintenta**: si va lento, salta al respaldo.
 
 **10 · El modelo pide; el motor decide.** Cada herramienta es un contrato tipado.
 Antes de tocar datos: se inyectan los campos fijos, se *imponen* los forzados (un
@@ -249,131 +248,71 @@ export const getNegocioId = cache(async (): Promise<string> => {
 
 ---
 
-## 4. Los puntos críticos, con nombre y apellidos
-
-Nada de esto salió de una lista de buenas prácticas. Cada entrada es un hallazgo del
-carril de QA o de una conversación real en producción, con su identificador en el
-registro de incidentes.
+## 4. Seguridad y resiliencia
 
 ### Seguridad
 
-**`SEC-0001` · 17 funciones sin comprobar quién llamaba** — *crítico*
-Ni siquiera recibían el teléfono. Con un identificador de negocio, cualquiera que
-alcanzara el motor podía editar servicios, cambiar horarios, darse de alta como dueño
-o echar empleados *de cualquier negocio*.
-→ Gate de actor en el despachador contra la misma matriz de permisos, cerrado por
-defecto. Se comprueba contra la base de datos por teléfono, nunca por un campo del
-payload —que es falsificable.
+**Cada función comprueba quién llama.** Toda operación que toca un negocio pasa por
+un control de actor contra la matriz de permisos, cerrado por defecto. El rol se
+comprueba en la base de datos por el teléfono real, nunca por un campo de la petición,
+que se puede falsificar.
 
-**`DASH-0002` · Dar de baja a alguien no le cortaba el acceso** — *crítico*
-La sesión es un JWT de 7 días. Sin revalidar el estado del usuario, un empleado
-despedido seguía entrando hasta que el token caducaba.
-→ Cada petición revalida que la cuenta sigue activa. La regla vive en un solo fichero
-que usan la web y la app móvil: imposible que las dos puertas se desvíen.
+**El acceso se revalida en cada petición.** La sesión es un JWT, pero cada llamada
+comprueba que la cuenta sigue activa: dar de baja a alguien le corta el acceso al
+momento. La regla vive en un solo fichero que usan la web y la app móvil.
 
-**`SEC-0006` · 22 endpoints devolvían el error de Postgres crudo** — *alto*
-Nombres de columnas y de restricciones llegaban al que llamaba: un mapa del esquema
-gratis para quien estuviera buscando.
-→ Manejador de error global: el error real se registra para nosotros, al cliente le
-llega un mensaje genérico. El JSON malformado pasó de 500 a 400.
+**Los errores internos no salen fuera.** Un manejador global registra el error real
+para nosotros y al que llama le llega un mensaje genérico, sin nombres de tablas ni
+columnas.
 
-**`SEC-0011` · Comodines de búsqueda sin escapar** — *alto*
-Los nombres de servicio se buscan con `ILIKE`. Un `%` escrito por el usuario casaba
-con todo.
-→ Escapado explícito de `%`, `_` y `\` antes de construir el patrón. Las consultas ya
-iban parametrizadas; esto cierra el hueco que la parametrización no cubre.
+**Consultas parametrizadas y búsquedas escapadas.** Además de parametrizar todo, los
+comodines de búsqueda (`%`, `_`, `\`) se escapan antes de construir el patrón.
 
-**Cifrado en reposo · Tokens de cliente en claro** — *alto*
-Cuando un cliente conecta su propia cuenta de WhatsApp, su token queda guardado. En
-claro, una copia de la base es una copia de sus credenciales.
-→ AES-256-GCM con clave de entorno. Sin clave no se persiste ningún token nuevo
-—error claro, nunca guardar en claro en silencio. Las filas antiguas se re-cifran al
-reescribirse.
+**Credenciales de cliente cifradas.** Los tokens que un cliente conecta se guardan con
+AES-256-GCM. Sin clave no se guarda nada: error claro, nunca en claro en silencio.
 
-**`OPS-0002` / `OPS-0008` · Endpoints públicos que cuestan dinero** — *medio*
-El chat del alta llama a un modelo en cada mensaje. Sin tope, el formulario público
-es una factura abierta.
-→ Ventana deslizante por IP con cubos independientes, más tope de 4096 caracteres por
-mensaje: no toca ningún mensaje real, corta el abuso.
+**Topes en lo que cuesta dinero.** El chat público del alta llama a un modelo en cada
+mensaje, así que lleva límite por IP y tope de tamaño por mensaje.
+
+**La IA, atacada a propósito cada semana.** Una batería automática intenta sacarle el
+prompt, hacerse pasar por el dueño o saltarse permisos. Solo avisa si algo pasa.
 
 ### Rendimiento y resiliencia
 
-**Pool · Una ráfaga de reservas congelaba todo**
-El lock por negocio retiene una conexión mientras dura. Con el pool por defecto en
-10, varias reservas simultáneas lo agotaban y el resto de consultas —de otros
-negocios— se quedaban esperando.
-→ Pool a 25 con fallo rápido a los 8 s. La contención se queda dentro del negocio que
-la causa.
+**Reservas simultáneas sin bloqueos.** El candado es por negocio, con un pool de
+conexiones dimensionado para ello y fallo rápido: una ráfaga en un negocio no frena a
+los demás.
 
-**`FUN-0024` · Dos mensajes seguidos rompían el contexto**
-Se procesaban en paralelo: ambos leían el historial antes de que el otro guardara.
-→ Serialización por conversación encadenando promesas — sin infraestructura nueva,
-porque un entorno lo sirve un solo proceso. Clientes distintos siguen en paralelo.
+**Mensajes en orden.** Dos mensajes seguidos del mismo cliente se procesan uno detrás
+de otro, para que el segundo vea lo que hizo el primero. Clientes distintos siguen en
+paralelo.
 
-**`TRI-0002` · El bot re-ofrecía el hueco que acababa de ocupar**
-La caché de herramientas del turno hacía idempotentes los reintentos, pero también
-servía lecturas viejas.
-→ Una escritura purga las lecturas cacheadas; las escrituras siguen cacheadas. Se
-enumeran las lecturas y no las escrituras a propósito: si algún día se añade una
-función y se olvida listarla, falla hacia el lado seguro.
+**Datos siempre frescos.** Cuando el bot escribe (reserva, cancela), se descartan las
+lecturas cacheadas del turno: nunca ofrece un hueco que acaba de ocupar.
 
-**Alta · Tres disparadores para la misma solicitud**
-El webhook de pago, el botón de aprobar y el barrido automático pueden dispararse
-casi a la vez. Con servicios reales eso es un número de teléfono comprado de más.
-→ Lock no bloqueante por solicitud: el que pierde la carrera sale de inmediato, sin
-tocar Postgres ni ningún servicio externo. Ni encolado ni error.
+**Un alta, una sola vez.** El pago, el botón de aprobar y el barrido automático pueden
+llegar a la vez; un lock por solicitud hace que solo uno trabaje y los demás salgan sin
+tocar nada.
 
-**Verificación · Un intento y el número queda inservible**
-Verificar un número en WhatsApp no se puede reintentar. Gastarlo mal quema el número
-para siempre, y un rollback no lo recupera.
-→ Esa llamada está tras un candado que solo se abre a mano. Y si un número no puede
-completarse, el sistema lo aparta del pool y asigna otro, recableando voz y
-mensajería de una pieza.
+**Frenos donde el error es irreversible.** Verificar un número en WhatsApp no se puede
+repetir, así que esa llamada va tras un candado. Si un número no puede completarse, se
+aparta del pool y se asigna otro, recableando voz y mensajería de una pieza.
 
-**Tiempo · Reintentar algo que no está roto, solo lento**
-Los reintentos se disparaban ante error, no ante lentitud. Un turno del alta se quedó
-colgado en el modelo bueno hasta que el proxy cortó a los 110 s.
-→ Presupuesto de tiempo por turno: cada llamada lleva su propio corte, y la lentitud
-salta directa al respaldo con lo que quede.
+**Presupuesto de tiempo por turno.** Cada llamada al modelo lleva su propio corte; si
+va lento, salta al respaldo con el tiempo que quede.
 
 ### Cómo lo sabemos
 
-**Más de 1.500 pruebas automáticas**, algunas de las cuales solo corren contra
-servicios reales con credenciales. Incluyen pruebas que intentan cruzar los datos de
-dos negocios a propósito y tienen que fallar. Encima de eso corre un carril de QA
-continuo que escribe cada hallazgo en un registro con su reproducción y su causa —de
-ahí salen los identificadores de arriba— y, en producción, un canario horario, un
-vigilante del pool de números y un recuperador de conversaciones que una caída dejó
-atascadas.
-
----
-
-## 5. Deuda conocida
-
-Todo lo de arriba está cerrado y desplegado. Esto no, y está escrito con la misma
-letra:
-
-- **Firma de Meta.** La bandeja sabe validar la firma de los webhooks de Meta, pero
-  solo la exige si el canal tiene el secreto configurado. El arreglo de raíz es que
-  el aprovisionador escriba el secreto al crear el canal, de modo que cada alta nazca
-  firmada.
-- **Formularios de WhatsApp.** Verificado inyectando los payloads reales de Meta: los
-  botones y las listas sobreviven a la bandeja, pero de los formularios (Flows) se
-  pierden los datos enteros. Solo son viables con un endpoint propio de intercambio
-  cifrado. Los botones ya están en producción; los formularios, no.
-- **Límites por proceso.** El límite de peticiones y la cola por conversación viven
-  en memoria del proceso. Es suficiente hoy —un entorno, un proceso— pero el día que
-  una conversación pueda repartirse entre dos procesos, ambos tienen que pasar a
-  Postgres.
-- **Recordatorios.** La planificación corre; el envío automático sigue apagado en
-  producción a la espera de que Meta apruebe las plantillas en los cuatro idiomas. El
-  outbox es honesto: cuando se encienda, ya hay cola.
+**Más de 1.500 pruebas automáticas**, algunas contra servicios reales. Incluyen
+pruebas que intentan cruzar los datos de dos negocios a propósito y tienen que fallar.
+Encima corre un carril de QA continuo y, en producción, un canario horario de los
+modelos, un vigilante del pool de números y un recuperador de conversaciones.
 
 ---
 
 ## Una nota sobre la forma de trabajar
 
-Casi todos los comentarios del código llevan fecha y el incidente que los provocó. No
+Casi todos los comentarios del código llevan fecha y el motivo de la decisión. No
 es documentación: es que el «por qué» de una decisión rara se pierde en semanas, y el
 que la encuentre después —aunque seamos nosotros mismos— va a querer revertirla.
 

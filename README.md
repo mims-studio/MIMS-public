@@ -13,7 +13,7 @@ entrenado con sus servicios y sus horarios, y su panel.
 
 > **[Desglose técnico completo →](docs/ARQUITECTURA.md)** — la base de datos y sus
 > entidades, el recorrido exacto de una reserva paso a paso, los patrones del backend
-> y del panel, y los puntos críticos de seguridad y rendimiento con su incidente.
+> y del panel, y cómo están resueltas la seguridad y la resiliencia.
 
 ![El alta de MIMS: una conversación, no un formulario](docs/img/alta-inicio.png)
 
@@ -165,7 +165,7 @@ móvil y el asistente.
 
 **Más de 110 migraciones versionadas**, cada una idempotente, con su explicación de por qué
 existe y su consulta de verificación al final. El esquema se lee como un registro de
-decisiones: por qué está esa columna, qué incidente la trajo y cómo comprobar que
+decisiones: por qué está esa columna, qué decisión la trajo y cómo comprobar que
 sigue bien.
 
 Todo esto, en detalle y con el código: **[docs/ARQUITECTURA.md](docs/ARQUITECTURA.md)**.
@@ -212,8 +212,7 @@ rellenar la ficha del negocio, inicio de sesión con Google) · Resend (email) �
 (alertas de operación)
 
 **Calidad** · Vitest · pruebas de integración contra base real · batería semanal de
-ataques a la IA y de permisos · un registro de hallazgos donde cada bug queda escrito con
-su reproducción y su causa
+ataques a la IA y de permisos · carril de QA continuo
 
 ---
 
@@ -253,7 +252,7 @@ validan todo por su cuenta.
 
 **Andreu Martín** y **Franc Cosp** — producto, arquitectura y desarrollo.
 
-Somos dos. Todo lo de aquí arriba está construido, roto y arreglado entre los dos:
+Somos dos. Todo lo de aquí arriba está construido entre los dos:
 el motor de reservas, el aprovisionamiento, los asistentes, el panel y la app.
 
 Disponibles para proyectos como freelance: integraciones complejas, automatización de
