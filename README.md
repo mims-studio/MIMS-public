@@ -9,7 +9,7 @@ con un chat, no rellenando un formulario— y en minutos tiene su número, su as
 entrenado con sus servicios y sus horarios, y su panel.
 
 > Caso de estudio. El código es privado; aquí está la arquitectura y las decisiones.
-> Producto en producción con clientes de pago.
+> Producto en vivo, en fase de lanzamiento comercial.
 
 > **[Desglose técnico completo →](docs/ARQUITECTURA.md)** — la base de datos y sus
 > entidades, el recorrido exacto de una reserva paso a paso, los patrones del backend
@@ -163,7 +163,7 @@ delante.
 tocar el calendario se responde con una consulta, la misma para el panel, la API
 móvil y el asistente.
 
-**83 migraciones versionadas**, cada una idempotente, con su explicación de por qué
+**Más de 110 migraciones versionadas**, cada una idempotente, con su explicación de por qué
 existe y su consulta de verificación al final. El esquema se lee como un registro de
 decisiones: por qué está esa columna, qué incidente la trajo y cómo comprobar que
 sigue bien.
@@ -190,21 +190,50 @@ Todo esto, en detalle y con el código: **[docs/ARQUITECTURA.md](docs/ARQUITECTU
 
 ## Con qué está hecho
 
-**Producto** · TypeScript · Node.js · Next.js · React · Tailwind · React Native (Expo)
+**Producto** · TypeScript · Node.js (Fastify) · Next.js · React · Tailwind · React Native (Expo)
 
-**Datos** · PostgreSQL con lógica en PL/pgSQL · migraciones versionadas · Drizzle ORM
+**Datos** · PostgreSQL 16 con lógica en PL/pgSQL · migraciones versionadas · Drizzle ORM
 
-**Infraestructura** · Docker y Docker Compose · Caddy · VPS propio · Vercel · despliegues
-reproducibles desde el tronco
+**Infraestructura** · servidores propios en **Hetzner** (UE, red privada entre ellos) ·
+Docker y Docker Compose · Caddy (HTTPS y lista blanca de rutas) · Vercel para las webs ·
+Cloudflare DNS · copias diarias de la base, cifradas y fuera del servidor
 
-**Integraciones** · WhatsApp Cloud API (Meta) · Stripe · Chatwoot · Retell AI · LiveKit ·
-Deepgram · proveedores SIP · Resend
+**Mensajería** · WhatsApp Cloud API (Meta) con plantillas aprobadas · Chatwoot autoalojado
+como bandeja y traspaso a humano
 
-**IA** · Gemini con tool-calling · prompts por sector · cadena de respaldo entre modelos
-para que una caída del proveedor no deje al negocio mudo
+**Voz y telefonía** · Vapi (agente de voz) · Zadarma (números, centralita y troncal SIP,
+con transferencia de la llamada al móvil del dueño)
 
-**Calidad** · Vitest · pruebas de integración contra base real · un registro de hallazgos
-donde cada bug queda escrito con su reproducción y su causa
+**IA** · Gemini con tool-calling · Groq (transcripción de audios y modelo de respaldo) ·
+cadena de respaldo entre modelos para que una caída del proveedor no deje al negocio mudo
+
+**Resto** · Stripe (suscripciones y cobro de señales con Connect) · Google (Places para
+rellenar la ficha del negocio, inicio de sesión con Google) · Resend (email) · Telegram
+(alertas de operación)
+
+**Calidad** · Vitest · pruebas de integración contra base real · batería semanal de
+ataques a la IA y de permisos · un registro de hallazgos donde cada bug queda escrito con
+su reproducción y su causa
+
+---
+
+## Cómo lo construimos
+
+Todo el producto se ha hecho con IA como equipo de desarrollo (Claude Code), pero con
+frenos, porque una IA que programa rápido también rompe rápido:
+
+- **Cada tarea en su rama y su carpeta aislada.** Varias sesiones trabajan a la vez sin
+  pisarse.
+- **Nada entra sin pasar las pruebas.** Cada cambio es un PR con tipado estricto y tests.
+- **Producción la toca una persona.** Los despliegues, el cobro y la configuración de
+  producción los aprueba un humano; la IA no tiene permiso.
+- **La IA no ve los secretos.** Las claves se ponen directamente en el servidor.
+- **Entornos separados.** Desarrollo y producción tienen bases, credenciales y roles
+  distintos; las migraciones van siempre primero a desarrollo.
+
+Y dentro del producto, la misma regla: **la IA conversa, el código decide.** El modelo
+no escribe en la base ni decide quién es dueño o cliente; solo llama a funciones que
+validan todo por su cuenta.
 
 ---
 
@@ -212,9 +241,9 @@ donde cada bug queda escrito con su reproducción y su causa
 
 | | |
 |---|---|
-| Migraciones de base de datos | **83** |
-| Pruebas automáticas | **528** |
-| Servicios externos integrados | **8** |
+| Migraciones de base de datos | **117** |
+| Pruebas automáticas | **más de 1.500** |
+| Servicios externos integrados | **más de 10** |
 | Sectores soportados | **22** |
 | Idiomas | **27** |
 

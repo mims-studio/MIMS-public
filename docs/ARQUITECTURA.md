@@ -7,13 +7,13 @@ seguridad y rendimiento que hemos tenido que resolver.
 
 > Todas las cifras y fragmentos están verificados contra el código, no reconstruidos
 > de memoria. El código es privado; esto es la arquitectura y las decisiones.
-> Producto en producción con clientes de pago — [mims.studio](https://mims.studio).
+> Producto en vivo, en fase de lanzamiento comercial — [mims.studio](https://mims.studio).
 
 | | |
 |---|---|
-| Migraciones SQL | **83** |
-| Pruebas automáticas en verde | **528** (52 ficheros, + 136 que exigen credenciales reales) |
-| Servicios externos integrados | **8** |
+| Migraciones SQL | **117** |
+| Pruebas automáticas | **más de 1.500** |
+| Servicios externos integrados | **más de 10** |
 | Idiomas | **27** |
 | Sectores | **22** |
 | Canales, un solo cerebro | **3** (WhatsApp · voz · panel) |
@@ -79,7 +79,7 @@ Sobre ese esquema hay **~30 funciones PL/pgSQL** que son la API real del dominio
 `modo_para_mensaje(pnid, telefono)`, `onboarding_materializar(...)`. El panel, la API
 móvil y el asistente llaman a las mismas.
 
-**83 migraciones como registro de decisiones.** Cada una es idempotente, lleva escrito
+**117 migraciones como registro de decisiones.** Cada una es idempotente, lleva escrito
 *por qué* existe y termina con su propia consulta de verificación. El esquema se lee
 como un histórico: qué incidente trajo esa columna y cómo comprobar que sigue bien.
 
@@ -245,7 +245,7 @@ export const getNegocioId = cache(async (): Promise<string> => {
 | Panel | Next 16 · React 19 · Tailwind 4 · Drizzle · zod · jose | Calendario por profesional, bandeja de conversaciones, equipo, clientes, facturación. |
 | Alta | Next 15 · React 19 · Stripe · sharp | Entrevista conversacional de 9 pasos. Sin acceso directo a la base: habla con el motor. |
 | Móvil | React Native (Expo) | Mismo JWT que la web, en `Authorization: Bearer`. Una sola regla de sesión para las dos puertas. |
-| Voz | SIP propio · LiveKit · Deepgram | El agente de voz llama al mismo motor; solo cambia el formateo para leerse en alto. |
+| Voz | Vapi · Zadarma (troncal SIP) | El agente de voz llama al mismo motor; solo cambia el formateo para leerse en alto. |
 
 ---
 
@@ -338,7 +338,7 @@ salta directa al respaldo con lo que quede.
 
 ### Cómo lo sabemos
 
-**528 pruebas automáticas en verde** en 52 ficheros, más 136 que solo corren contra
+**Más de 1.500 pruebas automáticas**, algunas de las cuales solo corren contra
 servicios reales con credenciales. Incluyen pruebas que intentan cruzar los datos de
 dos negocios a propósito y tienen que fallar. Encima de eso corre un carril de QA
 continuo que escribe cada hallazgo en un registro con su reproducción y su causa —de
